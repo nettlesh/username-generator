@@ -1,0 +1,42 @@
+# Words the generator never uses. Each one appears in at least one of the lists.
+
+# Hate
+enslave
+fascism
+pureblood
+racism
+skinhead
+
+# Violence
+chokehold
+maimed
+mutilated
+mutilator
+strangle
+
+# Sexual
+grope
+
+# Crude
+douche
+rectal
+
+# Slurs and dated labels
+eskimo
+imbecile
+junkie
+
+# Religion, which pairs badly with negative words
+buddhism
+buddhist
+islam
+islamic
+islamist
+pagan
+yiddish
+
+# Hyphens, which many sites reject in usernames
+drop-down
+felt-tip
+t-shirt
+yo-yo

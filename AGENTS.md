@@ -34,6 +34,9 @@ commits, pull requests, and the AI disclosure.
 - Every word list names its source and licence, on the page and in
   `src/lists.ts`. Add only lists whose licence is compatible with the
   repository's.
+- List files stay byte-identical to their source, checked against the SHA-256 in
+  `src/lists.ts`. Words the generator skips go in `src/lists/excluded.txt`, and
+  each must appear in a list.
 - The site is served under `/username-generator/`; `vite.config.ts` sets the
   base path once.
 

@@ -1,7 +1,7 @@
 # Username generator
 
-Generate usernames in the styles of popular password managers' generators, from
-openly licensed word lists. Everything runs in your browser with
+Generate usernames from random words or characters, with the options of popular
+password managers' generators. Everything runs in your browser with
 `crypto.getRandomValues`; nothing is sent anywhere.
 
 A companion to [remask](https://github.com/nettlesh/remask).
@@ -19,3 +19,15 @@ mise run dev
 `mise run check` runs the formatters and linters, `mise run test` the tests, and
 `mise run build` writes the site to `dist/`. See [Contributing](CONTRIBUTING.md)
 for commits and pull requests.
+
+## Word lists
+
+The words come from the [EFF's word lists](https://www.eff.org/dice) by the
+Electronic Frontier Foundation, under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The files in
+`src/lists/` are unchanged from EFF's; the generator skips the words in
+`src/lists/excluded.txt`.
+
+## Licence
+
+[MIT](LICENSE), except the word lists above.
