@@ -1,0 +1,58 @@
+[settings]
+lockfile = true
+lockfile_platforms = ["linux-x64", "macos-arm64"]
+# Matches aube's minimum-release-age in .npmrc.
+minimum_release_age = "7d"
+# TODO: Remove after 2026-10-19, when hk 2.6.0, the first with a jactionlint builtin, and
+# jactionlint 2.1.0 are a week old.
+minimum_release_age_excludes = ["hk", "jactionlint"]
+
+# A prefix accepts compatible releases, as npm's caret does: the major version, or the minor
+# version before 1.0. mise.lock records the exact versions; `mise upgrade` moves them.
+[tools]
+# Aube's releases moved from the release-plz workflow to the release workflow; accept either signer.
+aube = { version = "2", workflow = [
+  "release-plz.yml@refs/heads/main",
+  "release.yml@refs/heads/main",
+] }
+hk = "2"
+# A maintained fork of actionlint that merges upstream's fixes.
+jactionlint = "2"
+node = "26"
+pinact = "5"
+pkl = "0.32"
+rumdl = "0.2"
+tombi = "1"
+zizmor = "1"
+
+[env]
+_.path = ["{{ config_root }}/node_modules/.bin"]
+HK_MISE = "1"
+
+[tasks.build]
+description = "Build the site into dist/"
+run = "aube run --no-install build"
+
+[tasks.check]
+description = "Run every hk check on all files without changing them"
+run = "hk check --all"
+
+[tasks.dev]
+description = "Serve the site with Vite"
+run = "aube run --no-install dev"
+
+[tasks.fix]
+description = "Format and apply safe lint fixes to all files; never stages"
+run = "hk fix --all"
+
+[tasks.install]
+description = "Install locked dependencies and the Git hooks"
+usage = 'flag "--no-hooks" help="Skip Git hook installation, as CI does"'
+run = [
+  "aube install --frozen-lockfile",
+  'if [ "${usage_no_hooks:-false}" != "true" ]; then hk install --mise; fi',
+]
+
+[tasks.test]
+description = "Run the tests with Vitest"
+run = "aube run --no-install test"

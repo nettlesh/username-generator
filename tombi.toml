@@ -1,0 +1,13 @@
+[format.rules]
+trailing-comment-alignment = true
+trailing-comment-space-width = 1
+
+[[schemas]]
+path = "https://mise.jdx.dev/schema/mise.json"
+include = ["mise.toml"]
+
+[[schemas.overrides]]
+targets = ["tools", "tasks"]
+
+[schemas.overrides.format.rules]
+table-keys-order = "ascending"
