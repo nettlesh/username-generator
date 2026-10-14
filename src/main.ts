@@ -53,10 +53,11 @@ for (const slot of document.querySelectorAll<HTMLElement>("[data-icon]")) {
 // A range is two native sliders on one track, so each handle works with the mouse and the keyboard,
 // with buttons beside the track that step the low and high handles.
 for (const range of form.querySelectorAll<HTMLElement>(".range")) {
-  const { name, value = "0" } = range.dataset;
-  const max = name === "words" ? limits.words : limits.characters;
-  const slider = (end: string, label: string) =>
-    `<input type="range" name="${name}-${end}" min="0" max="${max}" value="${value}" aria-label="${label}" />`;
+  // The HTML holds each range's defaults; a range with only a minimum is that one value.
+  const { name, min = "0", max = min } = range.dataset;
+  const limit = name === "words" ? limits.words : limits.characters;
+  const slider = (end: string, label: string, value: string) =>
+    `<input type="range" name="${name}-${end}" min="0" max="${limit}" value="${value}" aria-label="${label}" />`;
   const steppers = (end: string, label: string) =>
     `<span class="steppers">` +
     `<button type="button" data-end="${end}" data-step="-1" aria-label="${label}, lower">−</button>` +
@@ -64,7 +65,7 @@ for (const range of form.querySelectorAll<HTMLElement>(".range")) {
     `</span>`;
   range.innerHTML =
     steppers("min", "Fewest") +
-    `<span class="track">${slider("min", "Fewest")}${slider("max", "Most")}</span>` +
+    `<span class="track">${slider("min", "Fewest", min)}${slider("max", "Most", max)}</span>` +
     steppers("max", "Most") +
     `<output></output>`;
 }

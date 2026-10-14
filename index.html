@@ -65,7 +65,7 @@
             <span data-icon="arrow-left-to-line"></span>
             Start
           </span>
-          <span class="range" data-name="start"></span>
+          <span class="range" data-name="start" data-min="1" data-max="2"></span>
           <span class="chips">
             <label><input type="checkbox" name="start" value="0-9" checked />0-9</label>
             <label><input type="checkbox" name="start" value="a-z" />a-z</label>
@@ -80,8 +80,8 @@
           title="Or uses only one of start and end, chosen at random"
         >
           <span class="chips">
-            <label><input type="radio" name="ends" value="both" checked />and</label>
-            <label><input type="radio" name="ends" value="either" />or</label>
+            <label><input type="radio" name="ends" value="both" />and</label>
+            <label><input type="radio" name="ends" value="either" checked />or</label>
           </span>
         </div>
 
@@ -90,7 +90,7 @@
             <span data-icon="arrow-right-to-line"></span>
             End
           </span>
-          <span class="range" data-name="end"></span>
+          <span class="range" data-name="end" data-min="1" data-max="2"></span>
           <span class="chips">
             <label><input type="checkbox" name="end" value="0-9" checked />0-9</label>
             <label><input type="checkbox" name="end" value="a-z" />a-z</label>
@@ -116,7 +116,7 @@
             <span data-icon="whole-word"></span>
             Words
           </span>
-          <span class="range" data-name="words" data-value="1"></span>
+          <span class="range" data-name="words" data-min="1"></span>
           <span class="wide">
             <span class="chips">
               <label><input type="radio" name="case" value="lower" checked />lower</label>
