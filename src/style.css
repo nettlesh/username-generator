@@ -5,6 +5,8 @@
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --radius: 8px;
   --ease: 0.2s ease;
+  /* Icons settle into place, overshooting a little first. */
+  --settle: cubic-bezier(0.3, 1.4, 0.6, 1);
   /* One height and one gap for every control, so spacing never varies between them. */
   --control: 2rem;
   --gap: 0.5rem;
@@ -16,6 +18,7 @@
   --muted: light-dark(#55664f, #a1a99b);
   --accent: light-dark(#2e6b4c, #8fd1a8);
   --on-accent: light-dark(#fff, #131712);
+  --danger: light-dark(#8a1810, #ffc4bd);
   --line: color-mix(in srgb, var(--muted) 30%, var(--border));
   --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-strong: color-mix(in srgb, var(--accent) 58%, var(--text));
@@ -89,7 +92,7 @@ label:has(:focus-visible) {
   outline-offset: 2px;
 }
 
-/* Hover colours the border; pressing or selecting tints the control. */
+/* Hovering or pressing colours the border; selecting tints the control. */
 button,
 .chips label,
 .icon {
@@ -110,12 +113,12 @@ button,
 }
 
 button:hover:not(:disabled),
+button:active:not(:disabled),
 .chips label:hover:not(:has(:disabled)),
 .icon:hover {
   border-color: var(--accent);
 }
 
-button:active:not(:disabled),
 .chips label:has(:checked) {
   border-color: var(--accent);
   background: var(--accent-soft);
@@ -141,6 +144,9 @@ button svg {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition:
+    rotate 0.3s var(--settle),
+    scale 0.3s var(--settle);
 }
 
 /* The result keeps one size, so the buttons never move. */
@@ -208,15 +214,42 @@ button svg {
   translate: calc(3.75rem - var(--control)) 0;
 }
 
+/* Padding widens each icon's hover target to 1.5rem; the negative margin keeps the icon where it
+   was. */
 #theme svg {
   position: relative;
+  margin: -0.25rem;
+  padding: 0.25rem;
   color: var(--muted);
-  transition: color var(--ease);
+  transition:
+    color var(--ease),
+    rotate 0.3s var(--settle);
 }
 
 #theme[aria-checked="false"] svg:first-child,
 #theme[aria-checked="true"] svg:last-child {
   color: var(--accent);
+}
+
+/* Hovered, icons lean towards what a press does, then settle back; a press's own animation plays on
+   top, since it moves the transform and these move rotate and scale. The switch's sun and moon
+   each tilt only under the pointer, so moving between them doesn't move the other. */
+@media (prefers-reduced-motion: no-preference) {
+  button.primary:hover:not(:disabled) svg {
+    rotate: -15deg;
+  }
+
+  #copy:hover:not(:disabled) svg {
+    scale: 1.12;
+  }
+
+  .reset:hover svg {
+    rotate: -45deg;
+  }
+
+  #theme svg:hover {
+    rotate: 15deg;
+  }
 }
 
 /* The saucer drifts the width of the username's line, easing to a stop at each end. It bobs and
@@ -304,6 +337,10 @@ button svg {
 
 #copy {
   min-width: 6.5rem;
+}
+
+#copy.failed {
+  color: var(--danger);
 }
 
 button.primary {

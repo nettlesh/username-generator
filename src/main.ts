@@ -1,6 +1,7 @@
 import startIcon from "lucide-static/icons/arrow-left-to-line.svg?raw";
 import endIcon from "lucide-static/icons/arrow-right-to-line.svg?raw";
 import listsIcon from "lucide-static/icons/book-open-text.svg?raw";
+import checkIcon from "lucide-static/icons/check.svg?raw";
 import copyIcon from "lucide-static/icons/copy.svg?raw";
 import dicesIcon from "lucide-static/icons/dices.svg?raw";
 import moonIcon from "lucide-static/icons/moon.svg?raw";
@@ -9,6 +10,7 @@ import resetIcon from "lucide-static/icons/rotate-ccw.svg?raw";
 import separatorIcon from "lucide-static/icons/separator-vertical.svg?raw";
 import sunIcon from "lucide-static/icons/sun.svg?raw";
 import wordsIcon from "lucide-static/icons/whole-word.svg?raw";
+import failedIcon from "lucide-static/icons/x.svg?raw";
 import "./style.css";
 import { sprite } from "./ufo";
 import { draw, format, limits, randomInt, separate, type Draft, type Options } from "./generate";
@@ -23,6 +25,7 @@ const generator = document.querySelector<HTMLButtonElement>("button.primary")!;
 const ufo = document.querySelector<HTMLSpanElement>("#ufo")!;
 const theme = document.querySelector<HTMLButtonElement>("#theme")!;
 const dark = matchMedia("(prefers-color-scheme: dark)");
+const still = matchMedia("(prefers-reduced-motion: reduce)");
 const loaded = new Map<string, Promise<string[]>>();
 // The last draw and the options it came from, so a change that only rewrites the username keeps it.
 let drawn: { draft: Draft; key: string; between: string } | undefined;
@@ -37,6 +40,7 @@ const icons: Record<string, string> = {
   "arrow-left-to-line": startIcon,
   "arrow-right-to-line": endIcon,
   "book-open-text": listsIcon,
+  check: checkIcon,
   copy: copyIcon,
   dices: dicesIcon,
   moon: moonIcon,
@@ -45,10 +49,12 @@ const icons: Record<string, string> = {
   "separator-vertical": separatorIcon,
   sun: sunIcon,
   "whole-word": wordsIcon,
+  x: failedIcon,
 };
 for (const slot of document.querySelectorAll<HTMLElement>("[data-icon]")) {
-  slot.outerHTML = icons[slot.dataset.icon!];
+  slot.replaceWith(icon(slot.dataset.icon!));
 }
+const settle = getComputedStyle(document.documentElement).getPropertyValue("--settle");
 
 // A range is two native sliders on one track, so each handle works with the mouse and the keyboard,
 // with buttons beside the track that step the low and high handles.
@@ -97,6 +103,19 @@ theme.addEventListener("click", () => {
     // Without storage the choice lasts until the page is closed.
   }
   showTheme();
+  // The side turned on rocks gently, like a sign swinging to a stop.
+  const [sun, moon] = theme.querySelectorAll("svg");
+  play(
+    isDark() ? moon : sun,
+    [
+      { transform: "none" },
+      { transform: "rotate(-14deg)", offset: 0.25 },
+      { transform: "rotate(9deg)", offset: 0.55 },
+      { transform: "rotate(-4deg)", offset: 0.8 },
+      { transform: "none" },
+    ],
+    { duration: 700, easing: "ease-in-out" },
+  );
 });
 dark.addEventListener("change", showTheme);
 showTheme();
@@ -121,17 +140,54 @@ form.addEventListener("click", (event) => {
 });
 // The browser restores every control to its value in the HTML, which holds the defaults; the
 // reset event fires before it does, so the render waits a task.
-form.addEventListener("reset", () => setTimeout(render));
+form.addEventListener("reset", () => {
+  setTimeout(render);
+  play(
+    form.querySelector(".reset svg")!,
+    [{ transform: "none" }, { transform: "rotate(-360deg)" }],
+    { duration: 600, easing: settle },
+  );
+});
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   drawn = undefined;
   render();
+  // The dice tumble once, rising as they turn.
+  play(
+    generator.querySelector("svg")!,
+    [
+      { transform: "none" },
+      { transform: "rotate(180deg) scale(1.25)", offset: 0.45 },
+      { transform: "rotate(360deg)" },
+    ],
+    { duration: 550, easing: "ease-out" },
+  );
 });
+// For a moment after a press, Copy says whether the copy worked, with a check or a red cross. Each
+// press restarts the moment, so an earlier press can't end it early.
+let copied: ReturnType<typeof setTimeout> | undefined;
 copy.addEventListener("click", async () => {
-  await navigator.clipboard.writeText(username.value);
-  const label = copy.querySelector("span")!;
-  label.textContent = "Copied";
-  setTimeout(() => (label.textContent = "Copy"), 1500);
+  const show = (name: string, text: string) => {
+    const glyph = icon(name);
+    copy.querySelector("svg")!.replaceWith(glyph);
+    copy.querySelector("span")!.textContent = text;
+    copy.classList.toggle("failed", name === "x");
+    play(glyph, [{ transform: "scale(0.4)", opacity: 0 }, { transform: "none" }], {
+      duration: 300,
+      easing: settle,
+    });
+  };
+  try {
+    await navigator.clipboard.writeText(username.value);
+    show("check", "Copied");
+  } catch (cause) {
+    show("x", "Failed");
+    // The reason still reaches the console.
+    throw cause;
+  } finally {
+    clearTimeout(copied);
+    copied = setTimeout(() => show("copy", "Copy"), 1500);
+  }
 });
 render();
 
@@ -214,4 +270,16 @@ async function render() {
   const failed = !error.hidden;
   length.hidden = copy.disabled = generator.disabled = failed;
   ufo.hidden = !failed;
+}
+
+/** A Lucide icon as an element, without the licence comment that leads its file. */
+function icon(name: string): SVGSVGElement {
+  const template = document.createElement("template");
+  template.innerHTML = icons[name];
+  return template.content.querySelector("svg")!;
+}
+
+/** Plays an icon's animation from the start on each press; with reduced motion, nothing moves. */
+function play(target: Element, keyframes: Keyframe[], options: KeyframeAnimationOptions) {
+  if (!still.matches) target.animate(keyframes, options);
 }
