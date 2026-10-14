@@ -21,28 +21,77 @@ export type Options = {
 // GitHub's 39 is the longest username limit among major sites.
 export const limits = { words: 5, characters: 40 };
 
-export function generate(options: Options, words: string[], random: Random): string {
-  check(options, words);
-  const pick = (from: ArrayLike<string>) => from[random(from.length)];
-  const count = ({ min, max }: Range) => min + random(max - min + 1);
-  const draw = (slot: Slot) =>
-    Array.from({ length: count(slot) }, () => pick(slot.characters)).join("");
+/**
+ * A username's random choices, kept apart from how it's written, so changing the case, leetspeak
+ * or separator rewrites the same username instead of drawing another.
+ */
+export type Draft = {
+  start: string;
+  /** Each word as listed, and with a random case drawn for each letter. */
+  words: { lower: string; mixed: string }[];
+  between: string[];
+  end: string;
+  /** Each character goes at an offset into one part: the start, words and betweens in order, then the end. */
+  anywhere: { part: number; at: number; character: string }[];
+};
 
+export function draw(options: Options, words: string[], random: Random): Draft {
+  check(options, words);
   // Ranges can all draw 0, so an empty username is drawn again.
   for (;;) {
-    const middle = Array.from(
-      { length: count(options.words) },
-      (_, i) => (i ? draw(options.between) : "") + shape(pick(words), options, random),
-    ).join("");
+    const picked = Array.from({ length: count(options.words, random) }, () => {
+      const lower = pick(words, random);
+      return { lower, mixed: Array.from(lower, (c) => (random(2) ? c.toUpperCase() : c)).join("") };
+    });
     const side = options.ends === "either" ? random(2) : undefined;
-    let username =
-      (side === 1 ? "" : draw(options.start)) + middle + (side === 0 ? "" : draw(options.end));
-    for (const character of draw(options.anywhere)) {
-      const at = random(username.length + 1);
-      username = username.slice(0, at) + character + username.slice(at);
+    const draft: Draft = {
+      start: side === 1 ? "" : fill(options.start, random),
+      words: picked,
+      between: picked.slice(1).map(() => fill(options.between, random)),
+      end: side === 0 ? "" : fill(options.end, random),
+      anywhere: [],
+    };
+    // A position on the boundary of two parts goes to the earlier one, so a separator added later
+    // goes after it.
+    const lengths = parts(
+      draft,
+      picked.map((word) => word.lower),
+    ).map((part) => part.length);
+    const total = lengths.reduce((sum, length) => sum + length, 0);
+    for (const character of fill(options.anywhere, random)) {
+      let at = random(total + 1);
+      let part = 0;
+      while (at > lengths[part]) at -= lengths[part++];
+      draft.anywhere.push({ part, at, character });
     }
-    if (username) return username;
+    if (total + draft.anywhere.length > 0) return draft;
   }
+}
+
+/** Draws new separators for a draft, keeping its words and characters. */
+export function separate(draft: Draft, options: Options, words: string[], random: Random): Draft {
+  check(options, words);
+  return { ...draft, between: draft.between.map(() => fill(options.between, random)) };
+}
+
+export function format(draft: Draft, options: Options): string {
+  return parts(
+    draft,
+    draft.words.map((word) => shape(word, options)),
+  )
+    .map((text, part) => {
+      // A separator can be shorter than when the characters were placed, so offsets past its end
+      // go at its end.
+      const inserted = (i: number) =>
+        draft.anywhere
+          .filter((a) => a.part === part && Math.min(a.at, text.length) === i)
+          .map((a) => a.character)
+          .join("");
+      return Array.from({ length: text.length + 1 }, (_, i) => inserted(i) + (text[i] ?? "")).join(
+        "",
+      );
+    })
+    .join("");
 }
 
 export function randomInt(n: number): number {
@@ -80,16 +129,37 @@ function check(options: Options, words: string[]) {
   }
 }
 
-function shape(word: string, options: Options, random: Random): string {
+/** The draft's parts in order, with its words written as given. */
+function parts(draft: Draft, words: string[]): string[] {
+  return [
+    draft.start,
+    ...words.flatMap((word, i) => (i ? [draft.between[i - 1], word] : [word])),
+    draft.end,
+  ];
+}
+
+function shape({ lower, mixed }: Draft["words"][number], options: Options): string {
   const cased =
     options.case === "upper"
-      ? word.toUpperCase()
+      ? lower.toUpperCase()
       : options.case === "capitalized"
-        ? word[0].toUpperCase() + word.slice(1)
+        ? lower[0].toUpperCase() + lower.slice(1)
         : options.case === "random"
-          ? Array.from(word, (c) => (random(2) ? c.toUpperCase() : c)).join("")
-          : word;
+          ? mixed
+          : lower;
   return options.leetspeak ? cased.replace(/[abegiostz]/gi, (c) => leet[c.toLowerCase()]) : cased;
+}
+
+function pick(from: ArrayLike<string>, random: Random): string {
+  return from[random(from.length)];
+}
+
+function count({ min, max }: Range, random: Random): number {
+  return min + random(max - min + 1);
+}
+
+function fill(slot: Slot, random: Random): string {
+  return Array.from({ length: count(slot, random) }, () => pick(slot.characters, random)).join("");
 }
 
 const leet: Record<string, string> = {

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { generate, limits, randomInt, type Options, type Random } from "./generate";
+import { draw, format, limits, randomInt, separate, type Options, type Random } from "./generate";
 
+const generate = (options: Options, from: string[], random: Random) =>
+  format(draw(options, from, random), options);
 const first: Random = () => 0;
 const last: Random = (n) => n - 1;
 const words = ["apple", "tiger"];
@@ -77,6 +79,46 @@ describe("positions", () => {
     let calls = 0;
     const emptyFirst: Random = (n) => (calls++ === 0 ? 0 : n - 1);
     expect(generate({ ...plain, words: { min: 0, max: 1 } }, words, emptyFirst)).toBe("tiger");
+  });
+});
+
+describe("drafts", () => {
+  test("keep their words when the case or leetspeak changes", () => {
+    const options: Options = { ...plain, words: { min: 2, max: 2 } };
+    // Each word, then a random case for each of its letters: tiger as TiGeR, then apple as aPpLe.
+    const draws = [1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0];
+    const draft = draw(options, words, (n) => (n === 2 ? draws.shift()! : 0));
+    expect(format(draft, options)).toBe("tigerapple");
+    expect(format(draft, { ...options, case: "capitalized" })).toBe("TigerApple");
+    expect(format(draft, { ...options, case: "random" })).toBe("TiGeRaPpLe");
+    expect(format(draft, { ...options, case: "random", leetspeak: true })).toBe("7163R4PpL3");
+  });
+
+  test("keep their words and characters when the separator changes", () => {
+    const options: Options = {
+      ...plain,
+      words: { min: 2, max: 2 },
+      between: { min: 1, max: 1, characters: "-" },
+      anywhere: { min: 1, max: 1, characters: "7" },
+    };
+    // "apple-apple" has 12 places for a character; the 7th is just after the separator.
+    const random: Random = (n) => (n === 12 ? 6 : 0);
+    const draft = draw(options, words, random);
+    expect(format(draft, options)).toBe("apple-7apple");
+    const none = separate(
+      draft,
+      { ...options, between: { min: 0, max: 0, characters: "" } },
+      words,
+      random,
+    );
+    expect(format(none, options)).toBe("apple7apple");
+    const dot = separate(
+      none,
+      { ...options, between: { min: 1, max: 1, characters: "." } },
+      words,
+      random,
+    );
+    expect(format(dot, options)).toBe("apple.7apple");
   });
 });
 

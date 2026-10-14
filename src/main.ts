@@ -11,7 +11,7 @@ import sunIcon from "lucide-static/icons/sun.svg?raw";
 import wordsIcon from "lucide-static/icons/whole-word.svg?raw";
 import "./style.css";
 import { dino } from "./dino";
-import { generate, limits, randomInt, type Options } from "./generate";
+import { draw, format, limits, randomInt, separate, type Draft, type Options } from "./generate";
 import { excluded, lists, load } from "./lists";
 
 const form = document.querySelector<HTMLFormElement>("#options")!;
@@ -24,6 +24,8 @@ const runner = document.querySelector<HTMLSpanElement>("#dino")!;
 const theme = document.querySelector<HTMLButtonElement>("#theme")!;
 const dark = matchMedia("(prefers-color-scheme: dark)");
 const loaded = new Map<string, Promise<string[]>>();
+// The last draw and the options it came from, so a change that only rewrites the username keeps it.
+let drawn: { draft: Draft; key: string; between: string } | undefined;
 const sets: Record<string, string> = {
   "0-9": "0123456789",
   "a-z": "abcdefghijklmnopqrstuvwxyz",
@@ -121,6 +123,7 @@ form.addEventListener("click", (event) => {
 form.addEventListener("reset", () => setTimeout(render));
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+  drawn = undefined;
   render();
 });
 copy.addEventListener("click", async () => {
@@ -182,11 +185,26 @@ async function render() {
     const words = [
       ...new Set((await Promise.all(chosen.map((list) => loaded.get(list.file)!))).flat()),
     ];
-    username.value = generate(options, words, randomInt);
+    // Case and leetspeak only rewrite the words, and a new separator keeps the words and characters.
+    const key = JSON.stringify([
+      options.words,
+      options.start,
+      options.end,
+      options.anywhere,
+      options.ends,
+      data.getAll("list"),
+    ]);
+    const between = JSON.stringify(options.between);
+    if (drawn?.key !== key) drawn = { key, between, draft: draw(options, words, randomInt) };
+    else if (drawn.between !== between) {
+      drawn = { key, between, draft: separate(drawn.draft, options, words, randomInt) };
+    }
+    username.value = format(drawn.draft, options);
     username.style.setProperty("--length", String(username.value.length));
     length.textContent = `${username.value.length} characters`;
     error.hidden = true;
   } catch (cause) {
+    drawn = undefined;
     username.value = "";
     error.textContent = cause instanceof Error ? cause.message : String(cause);
     error.hidden = false;
