@@ -171,8 +171,9 @@ button svg {
   color: var(--muted);
 }
 
+/* Green marks the page's own controls, so the link out turns the text colour instead. */
 .icon:hover {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .icon svg {
