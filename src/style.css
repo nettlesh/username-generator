@@ -9,11 +9,11 @@
   --control: 2rem;
   --gap: 0.5rem;
   /* Each colour is its light and dark value, chosen by the page's color-scheme. */
-  --bg: light-dark(#fbfaf6, #131712);
-  --surface: light-dark(#f3f1ea, #1b2019);
-  --border: light-dark(#dedbd0, #2c3329);
-  --text: light-dark(#22261f, #e5e9e0);
-  --muted: light-dark(#5f645a, #a1a99b);
+  --bg: light-dark(#edf2e9, #131712);
+  --surface: light-dark(#e1e9db, #1b2019);
+  --border: light-dark(#c9d5c2, #2c3329);
+  --text: light-dark(#1c2a1f, #e5e9e0);
+  --muted: light-dark(#55664f, #a1a99b);
   --accent: light-dark(#2e6b4c, #8fd1a8);
   --on-accent: light-dark(#fff, #131712);
   --line: color-mix(in srgb, var(--muted) 30%, var(--border));
