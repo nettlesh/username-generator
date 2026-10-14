@@ -30,4 +30,6 @@ Electronic Frontier Foundation, under
 
 ## Licence
 
-[MIT](LICENSE), except the word lists above.
+[MIT](LICENSE), except the word lists above and the icons: the interface icons
+are [Lucide](https://lucide.dev)'s (ISC; some derive from Feather, MIT), and the
+GitHub mark is [Simple Icons](https://simpleicons.org)' (CC0).

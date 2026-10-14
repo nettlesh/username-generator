@@ -235,5 +235,6 @@ tmbootpicker.efi
 # links and their record out of version control. Handwritten skills beside them are committed.
 /.agents/skills/.mise-skills.json
 /.agents/skills/aube
+/.agents/skills/fnox
 /.agents/skills/hk-configure
 /.agents/skills/hk-debug

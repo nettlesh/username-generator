@@ -1,60 +1,94 @@
 import { describe, expect, test } from "vitest";
-import { generate, maxLength, randomInt, type Options, type Random } from "./generate";
+import { generate, limits, randomInt, type Options, type Random } from "./generate";
 
 const first: Random = () => 0;
 const last: Random = (n) => n - 1;
 const words = ["apple", "tiger"];
+const none = { min: 0, max: 0, characters: "" };
 const plain: Options = {
-  kind: "words",
-  count: 1,
-  separator: "",
-  capitalized: false,
+  words: { min: 1, max: 1 },
+  case: "lower",
   leetspeak: false,
-  digits: 0,
-  digitsAt: "end",
+  start: none,
+  between: none,
+  end: none,
+  anywhere: none,
+  ends: "both",
 };
 
 describe("words", () => {
-  test("joins the chosen number of words with the separator", () => {
-    expect(generate({ ...plain, count: 3, separator: "-" }, words, first)).toBe(
-      "apple-apple-apple",
-    );
+  test("draws a count from the range and puts the separator between words", () => {
+    const options: Options = {
+      ...plain,
+      words: { min: 1, max: 3 },
+      between: { min: 1, max: 1, characters: "-" },
+    };
+    expect(generate(options, words, first)).toBe("apple");
+    expect(generate(options, words, last)).toBe("tiger-tiger-tiger");
   });
 
-  test("draws digit separators for each gap", () => {
-    expect(generate({ ...plain, count: 2, separator: "digit" }, words, last)).toBe("tiger9tiger");
-    const symbols = { ...plain, count: 2, separator: "digitOrSymbol" } as const;
-    expect(generate(symbols, words, last)).toBe("tiger*tiger");
+  test("applies the case, then leetspeak", () => {
+    expect(generate({ ...plain, case: "capitalized" }, words, last)).toBe("Tiger");
+    expect(generate({ ...plain, case: "upper" }, words, last)).toBe("TIGER");
+    expect(generate({ ...plain, case: "random" }, words, last)).toBe("TIGER");
+    expect(generate({ ...plain, case: "random" }, words, first)).toBe("apple");
+    expect(generate({ ...plain, case: "capitalized", leetspeak: true }, words, last)).toBe("7163r");
   });
 
-  test("capitalizes, then replaces letters with leetspeak", () => {
-    expect(generate({ ...plain, capitalized: true }, words, last)).toBe("Tiger");
-    expect(generate({ ...plain, capitalized: true, leetspeak: true }, words, last)).toBe("7163r");
-  });
-
-  test("puts digits at the start, the end or either", () => {
-    expect(generate({ ...plain, digits: 3 }, words, first)).toBe("apple000");
-    expect(generate({ ...plain, digits: 3, digitsAt: "start" }, words, first)).toBe("000apple");
-    expect(generate({ ...plain, digits: 1, digitsAt: "either" }, words, first)).toBe("0apple");
-    expect(generate({ ...plain, digits: 1, digitsAt: "either" }, words, last)).toBe("tiger9");
+  test("draws characters between words for each gap", () => {
+    const between = { min: 0, max: 2, characters: "0123456789" };
+    const options: Options = { ...plain, words: { min: 2, max: 2 }, between };
+    expect(generate(options, words, first)).toBe("appleapple");
+    expect(generate(options, words, last)).toBe("tiger99tiger");
   });
 });
 
-describe("characters", () => {
-  const characters = { kind: "characters", length: 4, digits: false, symbols: false } as const;
+describe("positions", () => {
+  const digits = { min: 0, max: 2, characters: "0123456789" };
 
-  test("draws the chosen number of characters from the chosen sets", () => {
-    expect(generate(characters, [], first)).toBe("aaaa");
-    expect(generate(characters, [], last)).toBe("ZZZZ");
-    expect(generate({ ...characters, digits: true }, [], last)).toBe("9999");
-    expect(generate({ ...characters, digits: true, symbols: true }, [], last)).toBe("****");
+  test("adds characters at the start and end", () => {
+    const options: Options = { ...plain, start: digits, end: { ...digits, characters: "xyz" } };
+    expect(generate(options, words, first)).toBe("apple");
+    expect(generate(options, words, last)).toBe("99tigerzz");
   });
 
-  test(`allows 1 to ${maxLength} characters`, () => {
-    expect(generate({ ...characters, length: maxLength }, [], first)).toHaveLength(maxLength);
-    expect(() => generate({ ...characters, length: 0 }, [], first)).toThrow(RangeError);
-    expect(() => generate({ ...characters, length: maxLength + 1 }, [], first)).toThrow(RangeError);
+  test("uses only one end when asked", () => {
+    const options: Options = { ...plain, start: digits, end: digits, ends: "either" };
+    expect(generate(options, words, first)).toBe("apple");
+    expect(generate(options, words, last)).toBe("tiger99");
   });
+
+  test("inserts characters anywhere", () => {
+    const options: Options = { ...plain, anywhere: { min: 1, max: 1, characters: "7" } };
+    expect(generate(options, words, first)).toBe("7apple");
+    expect(generate(options, words, last)).toBe("tiger7");
+  });
+
+  test("makes usernames from characters alone", () => {
+    const options: Options = {
+      ...plain,
+      words: { min: 0, max: 0 },
+      start: { min: 4, max: 4, characters: "ab" },
+    };
+    expect(generate(options, [], last)).toBe("bbbb");
+  });
+
+  test("draws again when a username comes out empty", () => {
+    let calls = 0;
+    const emptyFirst: Random = (n) => (calls++ === 0 ? 0 : n - 1);
+    expect(generate({ ...plain, words: { min: 0, max: 1 } }, words, emptyFirst)).toBe("tiger");
+  });
+});
+
+test("rejects options that can't produce a username", () => {
+  const throws = (options: Options, from = words) =>
+    expect(() => generate(options, from, first)).toThrow(RangeError);
+  throws({ ...plain, words: { min: 2, max: 1 } });
+  throws({ ...plain, words: { min: 0, max: limits.words + 1 } });
+  throws({ ...plain, start: { min: 0, max: limits.characters + 1, characters: "a" } });
+  throws({ ...plain, start: { min: 0, max: 1, characters: "" } });
+  throws(plain, []);
+  throws({ ...plain, words: { min: 0, max: 0 } });
 });
 
 test("randomInt returns every value below n, and no others", () => {

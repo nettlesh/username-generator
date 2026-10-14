@@ -1,0 +1,619 @@
+/* System fonts only: the page makes no requests beyond its own files. */
+:root {
+  color-scheme: light dark;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 8px;
+  --ease: 0.2s ease;
+  /* One height and one gap for every control, so spacing never varies between them. */
+  --control: 2rem;
+  --gap: 0.5rem;
+  /* Each colour is its light and dark value, chosen by the page's color-scheme. */
+  --bg: light-dark(#fbfaf6, #131712);
+  --surface: light-dark(#f3f1ea, #1b2019);
+  --border: light-dark(#dedbd0, #2c3329);
+  --text: light-dark(#22261f, #e5e9e0);
+  --muted: light-dark(#5f645a, #a1a99b);
+  --accent: light-dark(#2e6b4c, #8fd1a8);
+  --on-accent: light-dark(#fff, #131712);
+  --line: color-mix(in srgb, var(--muted) 30%, var(--border));
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-strong: color-mix(in srgb, var(--accent) 58%, var(--text));
+  /* A quieter green for the secondary button, darkening the same way on hover. */
+  --secondary: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  --secondary-strong: color-mix(in srgb, var(--accent) 34%, var(--surface));
+}
+
+/* The theme switch overrides the system's choice. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 1rem/1.5 var(--font);
+}
+
+main,
+footer {
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+main {
+  padding-top: 3rem;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+nav {
+  display: flex;
+  gap: var(--gap);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--accent);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible,
+label:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Hover colours the border; pressing or selecting tints the control. */
+button,
+.chips label,
+.icon {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap);
+  height: var(--control);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  cursor: pointer;
+  transition:
+    background-color var(--ease),
+    border-color var(--ease),
+    color var(--ease),
+    opacity var(--ease);
+}
+
+button:hover:not(:disabled),
+.chips label:hover:not(:has(:disabled)),
+.icon:hover {
+  border-color: var(--accent);
+}
+
+button:active:not(:disabled),
+.chips label:has(:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+button:disabled,
+.chips label:has(:disabled) {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button {
+  padding: 0 0.75rem;
+  border-radius: var(--radius);
+}
+
+button svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The result keeps one size, so the buttons never move. */
+.result {
+  position: relative;
+  container-type: inline-size;
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 1.5);
+  background: var(--surface);
+}
+
+/* Shrinks long usernames to fit on one line; a monospace character is about 0.6em wide. */
+#username {
+  display: block;
+  height: 3rem;
+  margin-bottom: 1rem;
+  font: min(2rem, 100cqi / (var(--length) * 0.62)) / 3rem var(--mono);
+  white-space: nowrap;
+}
+
+/* An icon-only link: the mark itself, as tall as a control, with no box around it. */
+.icon {
+  width: var(--control);
+  border: 0;
+  background: none;
+  color: var(--muted);
+}
+
+.icon:hover {
+  color: var(--accent);
+}
+
+.icon svg {
+  width: 1.625rem;
+  height: 1.625rem;
+  fill: currentColor;
+}
+
+/* A pill with the sun and moon; the knob sits behind the active one. */
+#theme {
+  position: relative;
+  justify-content: space-between;
+  width: 3.75rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+}
+
+#theme::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(var(--control) - 8px);
+  height: calc(var(--control) - 8px);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  transition: translate var(--ease);
+}
+
+#theme[aria-checked="true"]::before {
+  translate: calc(3.75rem - var(--control)) 0;
+}
+
+#theme svg {
+  position: relative;
+  color: var(--muted);
+  transition: color var(--ease);
+}
+
+#theme[aria-checked="false"] svg:first-child,
+#theme[aria-checked="true"] svg:last-child {
+  color: var(--accent);
+}
+
+/* The dinosaur runs the width of the username's line, turning at each end. */
+#dino {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  height: 3rem;
+  pointer-events: none;
+}
+
+#dino svg {
+  --size: 2.5rem;
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  margin-top: 0.25rem;
+  fill: var(--muted);
+  animation: run 7s linear infinite;
+}
+
+#dino .legs {
+  animation: stride 0.3s linear infinite;
+}
+
+#dino .legs + .legs {
+  animation-delay: -0.15s;
+}
+
+@keyframes run {
+  0% {
+    transform: translateX(0);
+  }
+
+  49.99% {
+    transform: translateX(calc(100cqi - var(--size)));
+  }
+
+  50% {
+    transform: translateX(calc(100cqi - var(--size))) scaleX(-1);
+  }
+
+  100% {
+    transform: translateX(0) scaleX(-1);
+  }
+}
+
+@keyframes stride {
+  0%,
+  49.99% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #dino svg,
+  #dino .legs {
+    animation: none;
+  }
+
+  #dino .legs + .legs {
+    opacity: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.actions button {
+  height: 2.5rem;
+  padding: 0 1rem;
+  font-weight: 500;
+}
+
+#copy {
+  min-width: 6.5rem;
+}
+
+button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+button.secondary {
+  border-color: var(--secondary);
+  background: var(--secondary);
+}
+
+button.secondary:hover:not(:disabled),
+button.secondary:active:not(:disabled) {
+  border-color: var(--secondary-strong);
+  background: var(--secondary-strong);
+  color: inherit;
+}
+
+/* Disabled, the filled buttons lose their fill and match the others. */
+button.primary:disabled,
+button.secondary:disabled {
+  border-color: var(--line);
+  background: var(--bg);
+  color: var(--text);
+}
+
+button.primary:hover:not(:disabled),
+button.primary:active:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: var(--accent-strong);
+  color: var(--on-accent);
+}
+
+#length,
+#error {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* On a phone the length or reason gets its own line, and the buttons share the next. */
+@media (max-width: 40rem) {
+  h1 {
+    font-size: 1.375rem;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  #length,
+  #error {
+    flex-basis: 100%;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+}
+
+/* Every row shares the form's columns: labels, sliders, then character sets. */
+form {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  column-gap: 1.25rem;
+}
+
+.row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  row-gap: calc(var(--gap) * 1.5);
+  padding: 0.875rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.label {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: end;
+  font-weight: 600;
+}
+
+.range {
+  grid-column: 2;
+}
+
+.chips {
+  grid-column: 3;
+}
+
+.wide {
+  grid-column: 2 / -1;
+}
+
+/* The word lists share their row with Reset, which ends the form. */
+.wide.lists {
+  grid-column: 2;
+}
+
+.reset {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.group {
+  display: contents;
+}
+
+/* Start and end read as a pair, joined by "and" or "or" in the label column. */
+.connector,
+.connector + .row {
+  border-top: 0;
+}
+
+.connector {
+  padding: 0;
+}
+
+.connector .chips {
+  grid-column: 1;
+  justify-self: end;
+}
+
+/* On a phone each row is its label and character sets on one line, with the slider below. */
+@media (max-width: 40rem) {
+  form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .label,
+  .connector .chips {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .row > .chips:not(.wide) {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .row.connector > .chips {
+    grid-column: 1;
+  }
+
+  .wide.lists {
+    grid-column: 1 / -1;
+  }
+
+  .reset {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .range,
+  .wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.wide,
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+}
+
+/* Chip groups inside a wide row flow as one, with the same gap as everywhere else. */
+.wide > .chips {
+  display: contents;
+}
+
+.chips label {
+  position: relative;
+  min-width: 2.5rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  font: 0.875rem var(--mono);
+}
+
+/* Hidden but still focusable and announced. */
+.chips input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.range {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.range output {
+  min-width: 3rem;
+  font: 0.875rem var(--mono);
+}
+
+/* A stepper pair is one joined control. */
+.steppers {
+  display: flex;
+}
+
+.steppers button {
+  width: var(--control);
+  padding: 0;
+  font: 1rem var(--mono);
+}
+
+.steppers button:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.steppers button:last-child {
+  margin-left: -1px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.steppers button:hover {
+  position: relative;
+}
+
+/* Both sliders cover the track; only their handles take the pointer. The low handle is grey and
+   the high one green, with the fill between them shading from one to the other. */
+.track {
+  position: relative;
+  flex: 1;
+  min-width: 6rem;
+  height: 2rem;
+  --thumb: 1.25rem;
+  --start: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--from));
+  --stop: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--to));
+  background: linear-gradient(
+      to right,
+      var(--border) var(--start),
+      var(--muted) var(--start),
+      var(--accent) var(--stop),
+      var(--border) var(--stop)
+    )
+    center / 100% 4px no-repeat;
+}
+
+.track input {
+  --tone: var(--accent);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  appearance: none;
+  background: none;
+  pointer-events: none;
+}
+
+.track input:first-child {
+  --tone: var(--muted);
+}
+
+.track input::-webkit-slider-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  border: 2px solid color-mix(in srgb, var(--tone) 55%, var(--border));
+  border-radius: 50%;
+  appearance: none;
+  background: var(--bg);
+  pointer-events: auto;
+  cursor: grab;
+  transition:
+    background-color var(--ease),
+    border-color var(--ease);
+}
+
+.track input::-moz-range-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  box-sizing: border-box;
+  border: 2px solid color-mix(in srgb, var(--tone) 55%, var(--border));
+  border-radius: 50%;
+  background: var(--bg);
+  pointer-events: auto;
+  cursor: grab;
+  transition:
+    background-color var(--ease),
+    border-color var(--ease);
+}
+
+.track input:hover::-webkit-slider-thumb {
+  border-color: var(--tone);
+}
+
+.track input:hover::-moz-range-thumb {
+  border-color: var(--tone);
+}
+
+.track input:active::-webkit-slider-thumb {
+  border-color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 25%, var(--bg));
+}
+
+.track input:active::-moz-range-thumb {
+  border-color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 25%, var(--bg));
+}
+
+footer {
+  padding-block: 2rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}

@@ -1,51 +1,48 @@
 /** Returns a uniformly random integer from 0 to n - 1. */
 export type Random = (n: number) => number;
 
-export type Separator = "" | "-" | "." | "_" | "digit" | "digitOrSymbol";
+export type Range = { min: number; max: number };
 
-export type Options =
-  | {
-      kind: "words";
-      count: number;
-      separator: Separator;
-      capitalized: boolean;
-      leetspeak: boolean;
-      digits: number;
-      digitsAt: "start" | "end" | "either";
-    }
-  | { kind: "characters"; length: number; digits: boolean; symbols: boolean };
+/** How many characters go in a position, and the characters they're drawn from. */
+export type Slot = Range & { characters: string };
 
-// GitHub's 39 is the longest limit among major sites.
-export const maxLength = 40;
+export type Options = {
+  words: Range;
+  case: "lower" | "capitalized" | "upper" | "random";
+  leetspeak: boolean;
+  start: Slot;
+  /** A separator is 1 to 1 from one character, such as "-". */
+  between: Slot;
+  end: Slot;
+  anywhere: Slot;
+  ends: "both" | "either";
+};
+
+// GitHub's 39 is the longest username limit among major sites.
+export const limits = { words: 5, characters: 40 };
 
 export function generate(options: Options, words: string[], random: Random): string {
+  check(options, words);
   const pick = (from: ArrayLike<string>) => from[random(from.length)];
+  const count = ({ min, max }: Range) => min + random(max - min + 1);
+  const draw = (slot: Slot) =>
+    Array.from({ length: count(slot) }, () => pick(slot.characters)).join("");
 
-  if (options.kind === "characters") {
-    if (options.length < 1 || options.length > maxLength) {
-      throw new RangeError(`A username has 1 to ${maxLength} characters`);
+  // Ranges can all draw 0, so an empty username is drawn again.
+  for (;;) {
+    const middle = Array.from(
+      { length: count(options.words) },
+      (_, i) => (i ? draw(options.between) : "") + shape(pick(words), options, random),
+    ).join("");
+    const side = options.ends === "either" ? random(2) : undefined;
+    let username =
+      (side === 1 ? "" : draw(options.start)) + middle + (side === 0 ? "" : draw(options.end));
+    for (const character of draw(options.anywhere)) {
+      const at = random(username.length + 1);
+      username = username.slice(0, at) + character + username.slice(at);
     }
-    const characters = letters + (options.digits ? digits : "") + (options.symbols ? symbols : "");
-    return Array.from({ length: options.length }, () => pick(characters)).join("");
+    if (username) return username;
   }
-
-  // Digit separators are drawn afresh for each gap.
-  const gap = () =>
-    options.separator === "digit"
-      ? pick(digits)
-      : options.separator === "digitOrSymbol"
-        ? pick(digits + symbols)
-        : options.separator;
-  const username = Array.from({ length: options.count }, () => {
-    let word = pick(words);
-    if (options.capitalized) word = word[0].toUpperCase() + word.slice(1);
-    if (options.leetspeak) word = word.replace(/[abegiostz]/gi, (c) => leet[c.toLowerCase()]);
-    return word;
-  }).reduce((joined, word) => joined + gap() + word);
-  const number = Array.from({ length: options.digits }, () => pick(digits)).join("");
-  const atStart =
-    options.digitsAt === "start" || (options.digitsAt === "either" && random(2) === 0);
-  return atStart ? number + username : username + number;
 }
 
 export function randomInt(n: number): number {
@@ -57,9 +54,44 @@ export function randomInt(n: number): number {
   return value[0] % n;
 }
 
-const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const digits = "0123456789";
-const symbols = "!@#$%^&*";
+/** Throws a message the page can show when the options can't produce a username. */
+function check(options: Options, words: string[]) {
+  const positions = {
+    Start: options.start,
+    "Between words": options.between,
+    End: options.end,
+    Anywhere: options.anywhere,
+  };
+  for (const [name, { min, max }, limit] of [
+    ["Words", options.words, limits.words] as const,
+    ...Object.entries(positions).map(([name, slot]) => [name, slot, limits.characters] as const),
+  ]) {
+    if (![min, max].every(Number.isInteger) || min < 0 || max > limit) {
+      throw new RangeError(`${name}: choose a whole number from 0 to ${limit}`);
+    }
+    if (min > max) throw new RangeError(`${name}: the minimum is above the maximum`);
+  }
+  for (const [name, slot] of Object.entries(positions)) {
+    if (slot.max > 0 && !slot.characters) throw new RangeError(`${name}: choose some characters`);
+  }
+  if (options.words.max > 0 && words.length === 0) throw new RangeError("Words: choose a list");
+  if (Math.max(options.words.max, options.start.max, options.end.max, options.anywhere.max) === 0) {
+    throw new RangeError("Choose words or characters to generate");
+  }
+}
+
+function shape(word: string, options: Options, random: Random): string {
+  const cased =
+    options.case === "upper"
+      ? word.toUpperCase()
+      : options.case === "capitalized"
+        ? word[0].toUpperCase() + word.slice(1)
+        : options.case === "random"
+          ? Array.from(word, (c) => (random(2) ? c.toUpperCase() : c)).join("")
+          : word;
+  return options.leetspeak ? cased.replace(/[abegiostz]/gi, (c) => leet[c.toLowerCase()]) : cased;
+}
+
 const leet: Record<string, string> = {
   a: "4",
   b: "8",

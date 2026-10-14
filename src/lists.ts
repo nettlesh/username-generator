@@ -32,6 +32,13 @@ export const excluded = new Set(
   excludedText.split("\n").filter((line) => line && !line.startsWith("#")),
 );
 
+/** Fetches a list's file, which Vite builds as a separate asset so it loads only when chosen. */
+export async function load(list: List): Promise<string[]> {
+  const response = await fetch(urls[`./lists/${list.file}`]);
+  if (!response.ok) throw new Error(`Couldn't load the ${list.name} list (${response.status})`);
+  return parse(await response.text());
+}
+
 /** Returns a list's words, leaving out the excluded ones. */
 export function parse(text: string): string[] {
   // Each line is a dice roll, a tab and a word.
@@ -40,3 +47,9 @@ export function parse(text: string): string[] {
     .map((line) => line.split("\t")[1])
     .filter((word) => word && !excluded.has(word));
 }
+
+const urls = import.meta.glob<string>("./lists/eff_*.txt", {
+  query: "?url",
+  import: "default",
+  eager: true,
+});
