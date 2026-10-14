@@ -238,3 +238,6 @@ tmbootpicker.efi
 /.agents/skills/fnox
 /.agents/skills/hk-configure
 /.agents/skills/hk-debug
+
+# Wrangler keeps local state for `wrangler dev` here.
+/.wrangler/

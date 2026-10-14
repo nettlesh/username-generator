@@ -2,7 +2,8 @@
 
 Generate usernames from random words or characters, with the options of popular
 password managers' generators. Everything runs in your browser with
-`crypto.getRandomValues`; nothing is sent anywhere.
+`crypto.getRandomValues`; nothing is sent anywhere. Try it at
+[sebastianbattle.com/username-generator](https://sebastianbattle.com/username-generator/).
 
 A companion to [remask](https://github.com/nettlesh/remask).
 
@@ -19,6 +20,15 @@ mise run dev
 `mise run check` runs the formatters and linters, `mise run test` the tests, and
 `mise run build` writes the site to `dist/`. See [Contributing](CONTRIBUTING.md)
 for commits and pull requests.
+
+## Deployment
+
+[Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/)
+deploys `main` to Cloudflare as a Worker with only static assets, on the route
+in `wrangler.jsonc`. In the dashboard, its build command is `pnpm run build` and
+its deploy command `npx wrangler deploy`. Cloudflare runs a route only for a
+proxied hostname, so `sebastianbattle.com` has a proxied `AAAA` record to
+`100::`, Cloudflare's placeholder for a host without an origin.
 
 ## Word lists
 
