@@ -10,7 +10,7 @@ import separatorIcon from "lucide-static/icons/separator-vertical.svg?raw";
 import sunIcon from "lucide-static/icons/sun.svg?raw";
 import wordsIcon from "lucide-static/icons/whole-word.svg?raw";
 import "./style.css";
-import { dino } from "./dino";
+import { sprite } from "./ufo";
 import { draw, format, limits, randomInt, separate, type Draft, type Options } from "./generate";
 import { excluded, lists, load } from "./lists";
 
@@ -20,7 +20,7 @@ const error = document.querySelector<HTMLParagraphElement>("#error")!;
 const length = document.querySelector<HTMLSpanElement>("#length")!;
 const copy = document.querySelector<HTMLButtonElement>("#copy")!;
 const generator = document.querySelector<HTMLButtonElement>("button.primary")!;
-const runner = document.querySelector<HTMLSpanElement>("#dino")!;
+const ufo = document.querySelector<HTMLSpanElement>("#ufo")!;
 const theme = document.querySelector<HTMLButtonElement>("#theme")!;
 const dark = matchMedia("(prefers-color-scheme: dark)");
 const loaded = new Map<string, Promise<string[]>>();
@@ -81,7 +81,7 @@ document.querySelector("#credit")!.innerHTML =
   `lists (${lists[0].licence}), without ${excluded.size} excluded words. ` +
   `Usernames are made in your browser, and nothing is sent anywhere.`;
 
-runner.innerHTML = dino;
+ufo.innerHTML = sprite;
 
 // The switch follows the system until it's used; the choice is then saved for later visits.
 const isDark = () =>
@@ -209,8 +209,8 @@ async function render() {
     error.textContent = cause instanceof Error ? cause.message : String(cause);
     error.hidden = false;
   }
-  // With nothing to show, a dinosaur runs back and forth where the username would be.
+  // With nothing to show, a flying saucer drifts back and forth where the username would be.
   const failed = !error.hidden;
   length.hidden = copy.disabled = generator.disabled = failed;
-  runner.hidden = !failed;
+  ufo.hidden = !failed;
 }

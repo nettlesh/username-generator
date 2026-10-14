@@ -218,71 +218,74 @@ button svg {
   color: var(--accent);
 }
 
-/* The dinosaur runs the width of the username's line, turning at each end. */
-#dino {
+/* The saucer drifts the width of the username's line, easing to a stop at each end. It bobs and
+   spins as it goes, over a beam that fades in and out, each on its own timer so the motion
+   doesn't read as one short loop. */
+#ufo {
   position: absolute;
   top: 1.25rem;
   left: 1.25rem;
+  display: flex;
+  align-items: center;
   height: 3rem;
   pointer-events: none;
 }
 
-#dino svg {
-  --size: 2.5rem;
+#ufo svg {
+  --size: 3rem;
   display: block;
   width: var(--size);
-  height: var(--size);
-  margin-top: 0.25rem;
   fill: var(--muted);
-  animation: run 7s linear infinite;
+  animation: drift 9s ease-in-out infinite alternate;
 }
 
-#dino .legs {
-  animation: stride 0.3s linear infinite;
+#ufo .saucer {
+  animation: bob 1.6s ease-in-out infinite alternate;
 }
 
-#dino .legs + .legs {
-  animation-delay: -0.15s;
+/* The lights are the box's own colour, so they read as windows in the rim. */
+#ufo .lights {
+  fill: var(--surface);
+  animation: spin calc(var(--frames) * 0.1s) steps(var(--frames)) infinite;
 }
 
-@keyframes run {
-  0% {
-    transform: translateX(0);
-  }
+#ufo .beam {
+  opacity: 0.35;
+  animation: beam 2.4s ease-in-out infinite alternate;
+}
 
-  49.99% {
+@keyframes drift {
+  to {
     transform: translateX(calc(100cqi - var(--size)));
   }
+}
 
-  50% {
-    transform: translateX(calc(100cqi - var(--size))) scaleX(-1);
-  }
-
-  100% {
-    transform: translateX(0) scaleX(-1);
+/* Inside the SVG a pixel of length is one pixel of the drawing. */
+@keyframes bob {
+  to {
+    transform: translateY(0.75px);
   }
 }
 
-@keyframes stride {
-  0%,
-  49.99% {
-    opacity: 1;
+@keyframes spin {
+  to {
+    transform: translateY(calc(var(--frames) * -1px));
   }
+}
 
-  50%,
-  100% {
+/* Fades up to the beam's own opacity, which is where it rests with reduced motion. */
+@keyframes beam {
+  from {
     opacity: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #dino svg,
-  #dino .legs {
+  #ufo svg,
+  #ufo .saucer,
+  #ufo .lights,
+  #ufo .beam {
     animation: none;
-  }
-
-  #dino .legs + .legs {
-    opacity: 0;
   }
 }
 
