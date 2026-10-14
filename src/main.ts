@@ -1,8 +1,14 @@
+import startIcon from "lucide-static/icons/arrow-left-to-line.svg?raw";
+import endIcon from "lucide-static/icons/arrow-right-to-line.svg?raw";
+import listsIcon from "lucide-static/icons/book-open-text.svg?raw";
 import copyIcon from "lucide-static/icons/copy.svg?raw";
 import dicesIcon from "lucide-static/icons/dices.svg?raw";
 import moonIcon from "lucide-static/icons/moon.svg?raw";
+import anywhereIcon from "lucide-static/icons/move-horizontal.svg?raw";
 import resetIcon from "lucide-static/icons/rotate-ccw.svg?raw";
+import separatorIcon from "lucide-static/icons/separator-vertical.svg?raw";
 import sunIcon from "lucide-static/icons/sun.svg?raw";
+import wordsIcon from "lucide-static/icons/whole-word.svg?raw";
 import "./style.css";
 import { dino } from "./dino";
 import { generate, limits, randomInt, type Options } from "./generate";
@@ -26,11 +32,17 @@ const sets: Record<string, string> = {
 
 // Lucide's icons are inlined at build time, so only these ship and nothing loads at runtime.
 const icons: Record<string, string> = {
+  "arrow-left-to-line": startIcon,
+  "arrow-right-to-line": endIcon,
+  "book-open-text": listsIcon,
   copy: copyIcon,
   dices: dicesIcon,
   moon: moonIcon,
+  "move-horizontal": anywhereIcon,
   "rotate-ccw": resetIcon,
+  "separator-vertical": separatorIcon,
   sun: sunIcon,
+  "whole-word": wordsIcon,
 };
 for (const slot of document.querySelectorAll<HTMLElement>("[data-icon]")) {
   slot.outerHTML = icons[slot.dataset.icon!];
