@@ -8,4 +8,10 @@
     { "pattern": "sebastianbattle.com/username-generator*", "zone_name": "sebastianbattle.com" },
   ],
   "assets": { "directory": "dist" },
+  // Each branch build publishes a Preview with `wrangler preview`, which needs this block. It's
+  // empty as a site of static assets needs no settings apart from production's. Its URL is on
+  // workers.dev, which the route above turns off for production, so Preview URLs are turned on
+  // apart from it; they're public.
+  "preview_urls": true,
+  "previews": {},
 }
