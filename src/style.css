@@ -195,6 +195,22 @@ button svg {
   fill: currentColor;
 }
 
+/* Reset sits beside the theme switch, away from any one option. It's one of the page's own
+   controls, so it turns green, and its icon is drawn in strokes like the others. */
+button.reset {
+  padding: 0;
+}
+
+button.reset:hover {
+  color: var(--accent);
+}
+
+button.reset svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+}
+
 /* A pill with the sun and moon; the knob sits behind the active one. */
 #theme {
   position: relative;
@@ -397,8 +413,14 @@ button.primary:active:not(:disabled) {
 
 /* On a phone the length or reason gets its own line, and the buttons share the next. */
 @media (max-width: 40rem) {
+  /* The title and the header's three controls share one line. */
   h1 {
-    font-size: 1.375rem;
+    font-size: 1.25rem;
+    white-space: nowrap;
+  }
+
+  nav {
+    gap: calc(var(--gap) / 2);
   }
 
   .actions {
@@ -418,7 +440,7 @@ button.primary:active:not(:disabled) {
 /* Every row shares the form's columns: labels, sliders, then character sets. */
 form {
   display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
   column-gap: 1.25rem;
 }
 
@@ -428,7 +450,7 @@ form {
   grid-template-columns: subgrid;
   align-items: center;
   row-gap: calc(var(--gap) * 1.5);
-  padding: 0.875rem 0;
+  padding: 1.25rem 0;
   border-top: 1px solid var(--border);
 }
 
@@ -461,68 +483,126 @@ form {
   grid-column: 2 / -1;
 }
 
-/* The word lists share their row with Reset, which ends the form. */
-.wide.lists {
-  grid-column: 2;
-}
-
-.reset {
-  grid-column: 3;
+/* A slider's own name, quieter than the row's, for a row with two. */
+.caption {
+  grid-column: 1;
   justify-self: end;
+  color: var(--muted);
+  font-size: 0.875rem;
 }
 
-.group {
-  display: contents;
+/* Start, End and Inside share a box under the sentence that joins them, as wide as the lines
+   between rows. Its padding insets only the outer columns, so its sliders line up with the rest. */
+.places {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  margin: 0.75rem 0;
+  padding: 0 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 1.5);
+  background: var(--surface);
 }
 
-/* Start and end read as a pair, joined by "and" or "or" in the label column. */
-.connector,
-.connector + .row {
+.places + .row {
   border-top: 0;
 }
 
-.connector {
-  padding: 0;
+/* The last row closes the form with a line, above the credit. */
+form > .row:last-child {
+  border-bottom: 1px solid var(--border);
 }
 
-.connector .chips {
-  grid-column: 1;
-  justify-self: end;
+.joins {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  margin: 0;
+  padding: 1rem 0;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-/* On a phone each row is its label and character sets on one line, with the slider below. */
+/* A place with no characters has nothing to join. */
+.joins .off {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Each join is a checkbox that reads "and" when checked and "or" when not. */
+.join {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font: 0.875rem var(--mono);
+  cursor: pointer;
+  transition:
+    background-color var(--ease),
+    opacity var(--ease);
+}
+
+.join:hover:not(:has(:disabled)) {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.join:has(:disabled) {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.join:has(:checked) span:nth-of-type(2),
+.join:not(:has(:checked)) span:nth-of-type(1) {
+  display: none;
+}
+
+.join svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* On a phone each row is its label and character sets on one line, with everything else below. */
 @media (max-width: 40rem) {
   form {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .label,
-  .connector .chips {
-    grid-column: 1;
+  .label {
     justify-self: start;
   }
 
-  .row > .chips:not(.wide) {
+  .row .chips:not(.wide) {
     grid-row: 1;
     grid-column: 2;
+    justify-self: end;
   }
 
-  .row.connector > .chips {
-    grid-column: 1;
-  }
-
-  .wide.lists {
-    grid-column: 1 / -1;
-  }
-
-  .reset {
-    grid-row: 1;
-    grid-column: 2;
+  /* Narrower chips keep the four cases on one line. */
+  .row .chips label {
+    padding: 0 0.625rem;
   }
 
   .range,
-  .wide {
+  .wide,
+  .caption {
     grid-column: 1 / -1;
+  }
+
+  .caption {
+    justify-self: start;
+    margin-bottom: calc(var(--gap) * -1);
   }
 }
 
@@ -534,11 +614,6 @@ form {
   gap: var(--gap);
 }
 
-/* Chip groups inside a wide row flow as one, with the same gap as everywhere else. */
-.wide > .chips {
-  display: contents;
-}
-
 .chips label {
   position: relative;
   min-width: 2.5rem;
@@ -548,7 +623,8 @@ form {
 }
 
 /* Hidden but still focusable and announced. */
-.chips input {
+.chips input,
+.join input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -560,27 +636,64 @@ form {
   gap: var(--gap);
 }
 
-/* Fits the widest value, "40–40", so the track ends as close to the chips as the label is to it. */
-.range output {
-  min-width: 5ch;
-  font: 0.875rem var(--mono);
-}
-
-/* Steppers are smaller than other controls, so the track keeps most of the row. */
-.steppers {
+/* Typed values, for counts too fine to drag to. Each box is a little wider than it's tall, enough
+   for two digits. */
+.values {
   display: flex;
+  flex: none;
+  align-items: center;
   gap: 0.25rem;
+  color: var(--muted);
+  font: 0.875rem var(--mono);
 }
 
-.steppers button {
-  width: 1.75rem;
+.values input {
+  box-sizing: border-box;
+  width: 2.25rem;
   height: 1.75rem;
-  padding: 0;
+  padding: 0 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 0.75);
+  appearance: textfield;
+  background: var(--bg);
   font: 0.875rem var(--mono);
+  text-align: center;
+  transition: border-color var(--ease);
+}
+
+.values input:hover {
+  border-color: var(--accent);
+}
+
+/* Focused, a field fills as a chip does when chosen, in place of the outline other controls get. */
+.values input:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+  background: var(--accent-soft);
+}
+
+.values input::-webkit-inner-spin-button,
+.values input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+/* How far a slider's handles can go slides to its new place as other options change it. */
+@property --reach {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .range {
+    transition: --reach 0.2s ease;
+  }
 }
 
 /* Both sliders cover the track; only their handles take the pointer. The low handle is grey and
-   the high one green, with the fill between them shading from one to the other. */
+   the high one green, with the fill between them shading from one to the other. Past the furthest
+   the handles can go, the line turns to dots, starting at the edge of a handle stopped there. */
 .track {
   position: relative;
   flex: 1;
@@ -589,14 +702,25 @@ form {
   --thumb: 1.25rem;
   --start: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--from));
   --stop: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--to));
-  background: linear-gradient(
-      to right,
-      var(--border) var(--start),
-      var(--muted) var(--start),
-      var(--accent) var(--stop),
-      var(--border) var(--stop)
-    )
-    center / 100% 4px no-repeat;
+  --end: calc(var(--thumb) + (100% - var(--thumb)) * var(--reach));
+  background:
+    linear-gradient(
+        to right,
+        var(--border) var(--start),
+        var(--muted) var(--start),
+        var(--accent) var(--stop),
+        var(--border) var(--stop),
+        var(--border) var(--end),
+        transparent var(--end)
+      )
+      center / 100% 4px no-repeat,
+    repeating-linear-gradient(to right, var(--border) 0 3px, transparent 3px 6px) center / 100% 2px
+      no-repeat;
+}
+
+/* A slider that can't apply, such as Inside without words, fades as a disabled chip does. */
+.range:has(:disabled) {
+  opacity: 0.45;
 }
 
 .track input {
@@ -660,8 +784,9 @@ form {
   background: color-mix(in srgb, var(--tone) 25%, var(--bg));
 }
 
+/* The credit sits as far below the form's last line as a row's content does. */
 footer {
-  padding-block: 2rem;
+  padding-block: 1.25rem 2rem;
   color: var(--muted);
   font-size: 0.875rem;
 }

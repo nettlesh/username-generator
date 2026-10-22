@@ -22,6 +22,16 @@
       <header>
         <h1>Username <span>generator</span></h1>
         <nav>
+          <!-- Reset belongs to the form below, so the browser restores every option it holds. -->
+          <button
+            type="reset"
+            form="options"
+            class="icon reset"
+            aria-label="Reset options"
+            title="Reset options"
+          >
+            <span data-icon="rotate-ccw"></span>
+          </button>
           <button id="theme" type="button" role="switch" aria-label="Dark mode">
             <span data-icon="sun"></span>
             <span data-icon="moon"></span>
@@ -59,75 +69,23 @@
         </div>
       </section>
 
-      <!-- One grid for every row: labels, sliders, then character sets, so all line up. -->
+      <!-- One grid for every row: labels, sliders, then character sets, so all line up. Each
+           range's data attributes hold its defaults, which Reset restores. -->
       <form id="options">
-        <div class="row" role="group" aria-labelledby="start-label">
-          <span class="label" id="start-label">
-            <span data-icon="arrow-left-to-line"></span>
-            Start
-          </span>
-          <span class="range" data-name="start" data-min="1" data-max="2"></span>
-          <span class="chips">
-            <label><input type="checkbox" name="start" value="0-9" checked />0-9</label>
-            <label><input type="checkbox" name="start" value="a-z" />a-z</label>
-            <label><input type="checkbox" name="start" value="A-Z" />A-Z</label>
-          </span>
-        </div>
-
-        <div
-          class="row connector"
-          role="radiogroup"
-          aria-label="Start and end: and uses both, or uses one of them, chosen at random"
-          title="Or uses only one of start and end, chosen at random"
-        >
-          <span class="chips">
-            <label><input type="radio" name="ends" value="both" />and</label>
-            <label><input type="radio" name="ends" value="either" checked />or</label>
-          </span>
-        </div>
-
-        <div class="row" role="group" aria-labelledby="end-label">
-          <span class="label" id="end-label">
-            <span data-icon="arrow-right-to-line"></span>
-            End
-          </span>
-          <span class="range" data-name="end" data-min="1" data-max="2"></span>
-          <span class="chips">
-            <label><input type="checkbox" name="end" value="0-9" checked />0-9</label>
-            <label><input type="checkbox" name="end" value="a-z" />a-z</label>
-            <label><input type="checkbox" name="end" value="A-Z" />A-Z</label>
-          </span>
-        </div>
-
-        <div class="row" role="group" aria-labelledby="anywhere-label">
-          <span class="label" id="anywhere-label">
-            <span data-icon="move-horizontal"></span>
-            Anywhere
-          </span>
-          <span class="range" data-name="anywhere"></span>
-          <span class="chips">
-            <label><input type="checkbox" name="anywhere" value="0-9" checked />0-9</label>
-            <label><input type="checkbox" name="anywhere" value="a-z" />a-z</label>
-            <label><input type="checkbox" name="anywhere" value="A-Z" />A-Z</label>
-          </span>
-        </div>
-
         <div class="row" role="group" aria-labelledby="words-label">
           <span class="label" id="words-label">
             <span data-icon="whole-word"></span>
             Words
           </span>
-          <span class="range" data-name="words" data-min="1"></span>
-          <span class="wide">
-            <span class="chips">
-              <label><input type="radio" name="case" value="lower" checked />lower</label>
-              <label><input type="radio" name="case" value="capitalized" />Capitalized</label>
-              <label><input type="radio" name="case" value="upper" />UPPER</label>
-              <label><input type="radio" name="case" value="random" />rAnDoM</label>
-            </span>
-            <span class="chips">
-              <label><input type="checkbox" name="leetspeak" />l33tsp34k</label>
-            </span>
+          <span class="range" data-name="words" data-min="1" data-scale="words"></span>
+          <span class="chips">
+            <label><input type="checkbox" name="leetspeak" />l33tsp34k</label>
+          </span>
+          <span class="chips wide">
+            <label><input type="radio" name="case" value="lower" checked />lower</label>
+            <label><input type="radio" name="case" value="capitalized" />Capitalized</label>
+            <label><input type="radio" name="case" value="upper" />UPPER</label>
+            <label><input type="radio" name="case" value="random" />rAnDoM</label>
           </span>
         </div>
 
@@ -136,6 +94,14 @@
             <span data-icon="separator-vertical"></span>
             Separator
           </span>
+          <!-- Laid out as Words is: the count, the sets random draws from, then the choices. Every
+               separator has a count, so "-" twice is "--". -->
+          <span class="range" data-name="between" data-min="1"></span>
+          <span class="chips">
+            <label><input type="checkbox" name="between" value="0-9" checked />0-9</label>
+            <label><input type="checkbox" name="between" value="a-z" />a-z</label>
+            <label><input type="checkbox" name="between" value="A-Z" />A-Z</label>
+          </span>
           <span class="chips wide">
             <label><input type="radio" name="separator" value="" checked />none</label>
             <label><input type="radio" name="separator" value="-" />-</label>
@@ -143,14 +109,70 @@
             <label><input type="radio" name="separator" value="_" />_</label>
             <label><input type="radio" name="separator" value="random" />random</label>
           </span>
-          <span id="between" class="group" hidden>
-            <span class="range" data-name="between"></span>
-            <span class="chips">
-              <label><input type="checkbox" name="between" value="0-9" checked />0-9</label>
-              <label><input type="checkbox" name="between" value="a-z" />a-z</label>
-              <label><input type="checkbox" name="between" value="A-Z" />A-Z</label>
+        </div>
+
+        <!-- Start, End and Inside, joined as the sentence at the top reads. -->
+        <div class="places" role="group" aria-label="Characters around and inside the words">
+          <p class="joins">
+            <span data-place="start">Start</span>
+            <label class="join">
+              <input type="checkbox" name="join" />
+              <span>and</span>
+              <span>or</span>
+              <span data-icon="arrow-left-right"></span>
+            </label>
+            <span data-place="end">End<span id="comma">,</span></span>
+            <label class="join">
+              <input type="checkbox" name="join" checked />
+              <span>and</span>
+              <span>or</span>
+              <span data-icon="arrow-left-right"></span>
+            </label>
+            <span data-place="inside">Inside</span>
+          </p>
+
+          <div class="row" role="group" aria-labelledby="start-label">
+            <span class="label" id="start-label">
+              <span data-icon="arrow-left-to-line"></span>
+              Start
             </span>
-          </span>
+            <span class="range" data-name="start" data-min="1" data-max="2"></span>
+            <span class="chips">
+              <label><input type="checkbox" name="start" value="0-9" checked />0-9</label>
+              <label><input type="checkbox" name="start" value="a-z" />a-z</label>
+              <label><input type="checkbox" name="start" value="A-Z" />A-Z</label>
+            </span>
+          </div>
+
+          <div class="row" role="group" aria-labelledby="end-label">
+            <span class="label" id="end-label">
+              <span data-icon="arrow-right-to-line"></span>
+              End
+            </span>
+            <span class="range" data-name="end" data-min="1" data-max="2"></span>
+            <span class="chips">
+              <label><input type="checkbox" name="end" value="0-9" checked />0-9</label>
+              <label><input type="checkbox" name="end" value="a-z" />a-z</label>
+              <label><input type="checkbox" name="end" value="A-Z" />A-Z</label>
+            </span>
+          </div>
+
+          <div class="row" role="group" aria-labelledby="inside-label">
+            <span class="label" id="inside-label">
+              <span data-icon="text-cursor"></span>
+              Inside
+            </span>
+            <!-- As on Start and End, the slider beside the label turns the place on: here, how many
+                 spots inside the words take characters. How many each takes is the line below. -->
+            <span class="range" data-name="spots"></span>
+            <span class="chips">
+              <label><input type="checkbox" name="inside" value="0-9" checked />0-9</label>
+              <label><input type="checkbox" name="inside" value="a-z" />a-z</label>
+              <label><input type="checkbox" name="inside" value="A-Z" />A-Z</label>
+            </span>
+            <span class="caption">Per spot</span>
+            <span class="range" data-name="inside" data-min="1"></span>
+          </div>
         </div>
 
         <div class="row" role="group" aria-labelledby="lists-label">
@@ -158,11 +180,7 @@
             <span data-icon="book-open-text"></span>
             Word lists
           </span>
-          <span class="chips wide lists" id="word-lists"></span>
-          <button type="reset" class="reset">
-            <span data-icon="rotate-ccw"></span>
-            <span>Reset</span>
-          </button>
+          <span class="chips wide" id="word-lists"></span>
         </div>
       </form>
     </main>
